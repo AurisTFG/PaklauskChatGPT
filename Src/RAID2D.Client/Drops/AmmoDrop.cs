@@ -5,25 +5,16 @@ namespace RAID2D.Client.Drops;
 
 public class AmmoDrop : IDroppableItem
 {
-    public PictureBox PictureBox { get; private set; } = new();
-    public Point Location { get; private set; } = Rand.LocationOnScreen(Constants.DropSize);
+    public Point Location { get; private set; }
+    public string Name { get; private set; }
+    public Image Image { get; private set; }
+    public Size Size => Constants.DropSize;
 
-    PictureBox IDroppableItem.Create()
+    public AmmoDrop()
     {
-        AmmoDropData data = DropManager.GetRandomAmmoDropData();
-
-        PictureBox = new()
-        {
-            Tag = Constants.DropAmmoTag,
-            Name = data.Name,
-            Image = data.Image,
-            Location = this.Location,
-            Size = Constants.DropSize,
-            SizeMode = Constants.SizeMode,
-        };
-
-        Console.WriteLine($"Spawned {data.Name} at {PictureBox.Location}");
-
-        return PictureBox;
+        Location = Rand.LocationOnScreen(Constants.DropSize);
+        var data = DropManager.GetRandomAmmoDropData();
+        Name = data.Name;
+        Image = data.Image;
     }
 }

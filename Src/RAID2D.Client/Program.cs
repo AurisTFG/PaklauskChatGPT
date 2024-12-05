@@ -1,13 +1,18 @@
 ﻿global using RAID2D.Client.Properties;
 global using Timer = System.Windows.Forms.Timer;
-using RAID2D.Client.Managers;
 
-[STAThread]
-static void Main()
+namespace RAID2D.Client;
+
+class Program
 {
-    ApplicationConfiguration.Initialize();
-    ConsoleManager.SpawnConsole();
-    Application.Run(new Client.MainForm());
-}
+    [STAThread]
+    public static void Main()
+    {
+        ApplicationConfiguration.Initialize();
+        Control.CheckForIllegalCrossThreadCalls = true;
 
-Main();
+        RAID2D.Client.Managers.ConsoleManager.SpawnConsole();
+
+        Application.Run(new RAID2D.Client.MainForm());
+    }
+}

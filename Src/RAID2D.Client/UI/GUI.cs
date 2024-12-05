@@ -1,5 +1,7 @@
-﻿using RAID2D.Client.Services;
+﻿using RAID2D.Client.Players;
+using RAID2D.Client.Services;
 using RAID2D.Client.Utils;
+using RAID2D.Shared.Models;
 
 namespace RAID2D.Client.UI;
 
@@ -42,7 +44,7 @@ public class GUI
         healthBar = health;
     }
 
-    public void CreatePauseMenu(Action<string>? onConnectClick, Action? onDisconnectClick, Action? onQuitClick, Action<Panel>? onPanelCreate)
+    public void CreatePauseMenu(Action<string>? onConnectClick, Action? onDisconnectClick, Action? onQuitClick, Action? onLastCheckpointClick, Action<Panel>? onPanelCreate)
     {
         pauseMenuPanel = new Panel
         {
@@ -64,7 +66,7 @@ public class GUI
         TextBox serverLinkTextBox = new()
         {
             PlaceholderText = "Enter server link here",
-            Text = Constants.DefaultServerLink,
+            Text = $"{Constants.ServerUrl}",
             Width = 250,
             Location = new Point(25, 60)
         };
@@ -93,25 +95,35 @@ public class GUI
         };
         quitButton.Click += (s, e) => onQuitClick?.Invoke();
 
+        Button lastCheckpoint = new()
+        {
+            Text = "Last Checkpoint",
+            Width = 250,
+            Location = new Point(25, 220)
+        };
+        lastCheckpoint.Click += (s, e) => onLastCheckpointClick?.Invoke();
+
         pauseMenuPanel.Controls.Add(pauseMenuLabel);
         pauseMenuPanel.Controls.Add(serverLinkTextBox);
         pauseMenuPanel.Controls.Add(connectButton);
         pauseMenuPanel.Controls.Add(disconnectButton);
         pauseMenuPanel.Controls.Add(quitButton);
+        pauseMenuPanel.Controls.Add(lastCheckpoint);
 
         onPanelCreate?.Invoke(pauseMenuPanel);
     }
 
-    public void CreateDevButtons(Player player, ServerConnection server, Action<uint>? onSpawnEntitiesClick, Action<Button>? onButtonCreate)
+    public void CreateDevButtons(Player player, ServerConnection server, Action? onSpawnEntitiesClick, Action? onUndoClick, Action<Button>? onButtonCreate)
     {
 #if DEBUG
-        List<(string Text, EventHandler OnClick)> devButtons = new()
-        {
+        List<(string Text, EventHandler OnClick)> devButtons =
+        [
             ("Add 9999 Ammo", (s, e) => player.PickupAmmo(9999)),
             ("Add 9999 Health", (s, e) => player.SetMaxHealth(9999)),
-            ("Spawn 10 Entities", (s, e) => onSpawnEntitiesClick?.Invoke(10)),
-            ("Send Message to Server", async (s, e) => await server.SendMessageAsync("DEV", "Sending a test message"))
-        };
+            ("Spawn 6 Entities", (s, e) => onSpawnEntitiesClick?.Invoke()),
+            ("Send Player Data to Server", async (s, e) => await server.SendGameStateAsync(new GameState(player.PictureBox.Location, player.Direction))),
+            ("Undo daytime", (s, e) => onUndoClick?.Invoke())
+        ];
 
         Button? previousButton = null;
         foreach (var (text, clickHandler) in devButtons)
@@ -165,6 +177,16 @@ public class GUI
     public void UpdateCash(uint cash)
     {
         cashLabel.Text = $"Cash: {cash}$";
+    }
+
+    public bool IsPaused()
+    {
+        return pauseMenuPanel.Visible;
+    }
+
+    public void SetPauseMenuVisibility(bool isVisible)
+    {
+        pauseMenuPanel.Visible = isVisible;
     }
 
     public void TogglePauseMenuVisibility()
